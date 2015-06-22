@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #include <linux/cgroup.h>
 #include <linux/err.h>
 #include <linux/kernel.h>
@@ -761,6 +762,11 @@ schedtune_accept_deltas(int nrg_delta, int cap_delta,
 }
 
 #endif /* CONFIG_CGROUP_SCHEDTUNE */
+=======
+#include "sched.h"
+
+unsigned int sysctl_sched_cfs_boost __read_mostly;
+>>>>>>> fbf4f26... WIP: sched/tune: add sysctl interface to define a boost value
 
 int
 sysctl_sched_cfs_boost_handler(struct ctl_table *table, int write,
@@ -768,12 +774,16 @@ sysctl_sched_cfs_boost_handler(struct ctl_table *table, int write,
 			       loff_t *ppos)
 {
 	int ret = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
+<<<<<<< HEAD
 	unsigned threshold_idx;
 	int boost_pct;
+=======
+>>>>>>> fbf4f26... WIP: sched/tune: add sysctl interface to define a boost value
 
 	if (ret || !write)
 		return ret;
 
+<<<<<<< HEAD
 	if (sysctl_sched_cfs_boost < -100 || sysctl_sched_cfs_boost > 100)
 		return -EINVAL;
 	boost_pct = sysctl_sched_cfs_boost;
@@ -947,4 +957,8 @@ nodata:
 	return -EINVAL;
 }
 postcore_initcall(schedtune_init);
+=======
+	return 0;
+}
+>>>>>>> fbf4f26... WIP: sched/tune: add sysctl interface to define a boost value
 
