@@ -14,6 +14,7 @@
 #include <linux/delay.h>
 #include <linux/string.h>
 
+<<<<<<< HEAD
 #define CREATE_TRACE_POINTS
 #include <trace/events/cpufreq_sched.h>
 
@@ -21,6 +22,11 @@
 
 #define THROTTLE_DOWN_NSEC	50000000 /* 50ms default */
 #define THROTTLE_UP_NSEC	500000 /* 500us default */
+=======
+#include "sched.h"
+
+#define THROTTLE_NSEC		50000000 /* 50ms default */
+>>>>>>> 4881baf... FROMLIST: sched: scheduler-driven cpu frequency selection
 
 struct static_key __read_mostly __sched_freq = STATIC_KEY_INIT_FALSE;
 static bool __read_mostly cpufreq_driver_slow;
@@ -34,10 +40,15 @@ DEFINE_PER_CPU(struct sched_capacity_reqs, cpu_sched_capacity_reqs);
 
 /**
  * gov_data - per-policy data internal to the governor
+<<<<<<< HEAD
  * @up_throttle: next throttling period expiry if increasing OPP
  * @down_throttle: next throttling period expiry if decreasing OPP
  * @up_throttle_nsec: throttle period length in nanoseconds if increasing OPP
  * @down_throttle_nsec: throttle period length in nanoseconds if decreasing OPP
+=======
+ * @throttle: next throttling period expiry. Derived from throttle_nsec
+ * @throttle_nsec: throttle period length in nanoseconds
+>>>>>>> 4881baf... FROMLIST: sched: scheduler-driven cpu frequency selection
  * @task: worker thread for dvfs transition that may block/sleep
  * @irq_work: callback used to wake up worker thread
  * @requested_freq: last frequency requested by the sched governor
@@ -51,10 +62,15 @@ DEFINE_PER_CPU(struct sched_capacity_reqs, cpu_sched_capacity_reqs);
  * call down_write(policy->rwsem).
  */
 struct gov_data {
+<<<<<<< HEAD
 	ktime_t up_throttle;
 	ktime_t down_throttle;
 	unsigned int up_throttle_nsec;
 	unsigned int down_throttle_nsec;
+=======
+	ktime_t throttle;
+	unsigned int throttle_nsec;
+>>>>>>> 4881baf... FROMLIST: sched: scheduler-driven cpu frequency selection
 	struct task_struct *task;
 	struct irq_work irq_work;
 	unsigned int requested_freq;
@@ -71,6 +87,7 @@ static void cpufreq_sched_try_driver_target(struct cpufreq_policy *policy,
 
 	__cpufreq_driver_target(policy, freq, CPUFREQ_RELATION_L);
 
+<<<<<<< HEAD
 	gd->up_throttle = ktime_add_ns(ktime_get(), gd->up_throttle_nsec);
 	gd->down_throttle = ktime_add_ns(ktime_get(), gd->down_throttle_nsec);
 	up_write(&policy->rwsem);
@@ -94,6 +111,26 @@ static bool finish_last_request(struct gov_data *gd, unsigned int cur_freq)
 		usleep_range(usec_left, usec_left + 100);
 		now = ktime_get();
 		if (ktime_after(now, throttle))
+=======
+	gd->throttle = ktime_add_ns(ktime_get(), gd->throttle_nsec);
+	up_write(&policy->rwsem);
+}
+
+static bool finish_last_request(struct gov_data *gd)
+{
+	ktime_t now = ktime_get();
+
+	if (ktime_after(now, gd->throttle))
+		return false;
+
+	while (1) {
+		int usec_left = ktime_to_ns(ktime_sub(gd->throttle, now));
+
+		usec_left /= NSEC_PER_USEC;
+		usleep_range(usec_left, usec_left + 100);
+		now = ktime_get();
+		if (ktime_after(now, gd->throttle))
+>>>>>>> 4881baf... FROMLIST: sched: scheduler-driven cpu frequency selection
 			return true;
 	}
 }
@@ -128,18 +165,28 @@ static int cpufreq_sched_thread(void *data)
 	}
 
 	do {
+<<<<<<< HEAD
 		new_request = gd->requested_freq;
 		if (new_request == last_request) {
 			set_current_state(TASK_INTERRUPTIBLE);
 			if (kthread_should_stop())
 				break;
+=======
+		set_current_state(TASK_INTERRUPTIBLE);
+		new_request = gd->requested_freq;
+		if (new_request == last_request) {
+>>>>>>> 4881baf... FROMLIST: sched: scheduler-driven cpu frequency selection
 			schedule();
 		} else {
 			/*
 			 * if the frequency thread sleeps while waiting to be
 			 * unthrottled, start over to check for a newer request
 			 */
+<<<<<<< HEAD
 			if (finish_last_request(gd, policy->cur))
+=======
+			if (finish_last_request(gd))
+>>>>>>> 4881baf... FROMLIST: sched: scheduler-driven cpu frequency selection
 				continue;
 			last_request = new_request;
 			cpufreq_sched_try_driver_target(policy, new_request);
@@ -201,6 +248,7 @@ static void update_fdomain_capacity_request(int cpu)
 		goto out;
 	freq_new = policy->freq_table[index_new].frequency;
 
+<<<<<<< HEAD
 	if (freq_new > policy->max)
 		freq_new = policy->max;
 
@@ -209,6 +257,8 @@ static void update_fdomain_capacity_request(int cpu)
 
 	trace_cpufreq_sched_request_opp(cpu, capacity, freq_new,
 					gd->requested_freq);
+=======
+>>>>>>> 4881baf... FROMLIST: sched: scheduler-driven cpu frequency selection
 	if (freq_new == gd->requested_freq)
 		goto out;
 
@@ -245,8 +295,11 @@ void update_cpu_capacity_request(int cpu, bool request)
 	if (new_capacity == scr->total)
 		return;
 
+<<<<<<< HEAD
 	trace_cpufreq_sched_update_capacity(cpu, request, scr, new_capacity);
 
+=======
+>>>>>>> 4881baf... FROMLIST: sched: scheduler-driven cpu frequency selection
 	scr->total = new_capacity;
 	if (request)
 		update_fdomain_capacity_request(cpu);
@@ -262,17 +315,23 @@ static inline void clear_sched_freq(void)
 	static_key_slow_dec(&__sched_freq);
 }
 
+<<<<<<< HEAD
 static struct attribute_group sched_attr_group_gov_pol;
 static struct attribute_group *get_sysfs_attr(void)
 {
 	return &sched_attr_group_gov_pol;
 }
 
+=======
+>>>>>>> 4881baf... FROMLIST: sched: scheduler-driven cpu frequency selection
 static int cpufreq_sched_policy_init(struct cpufreq_policy *policy)
 {
 	struct gov_data *gd;
 	int cpu;
+<<<<<<< HEAD
 	int rc;
+=======
+>>>>>>> 4881baf... FROMLIST: sched: scheduler-driven cpu frequency selection
 
 	for_each_cpu(cpu, policy->cpus)
 		memset(&per_cpu(cpu_sched_capacity_reqs, cpu), 0,
@@ -282,6 +341,7 @@ static int cpufreq_sched_policy_init(struct cpufreq_policy *policy)
 	if (!gd)
 		return -ENOMEM;
 
+<<<<<<< HEAD
 	gd->up_throttle_nsec = policy->cpuinfo.transition_latency ?
 			    policy->cpuinfo.transition_latency :
 			    THROTTLE_UP_NSEC;
@@ -296,6 +356,13 @@ static int cpufreq_sched_policy_init(struct cpufreq_policy *policy)
 		pr_err("%s: couldn't create sysfs attributes: %d\n", __func__, rc);
 		goto err;
 	}
+=======
+	gd->throttle_nsec = policy->cpuinfo.transition_latency ?
+			    policy->cpuinfo.transition_latency :
+			    THROTTLE_NSEC;
+	pr_debug("%s: throttle threshold = %u [ns]\n",
+		  __func__, gd->throttle_nsec);
+>>>>>>> 4881baf... FROMLIST: sched: scheduler-driven cpu frequency selection
 
 	if (cpufreq_driver_is_slow()) {
 		cpufreq_driver_slow = true;
@@ -313,12 +380,19 @@ static int cpufreq_sched_policy_init(struct cpufreq_policy *policy)
 		init_irq_work(&gd->irq_work, cpufreq_sched_irq_work);
 	}
 
+<<<<<<< HEAD
+=======
+	policy->governor_data = gd;
+>>>>>>> 4881baf... FROMLIST: sched: scheduler-driven cpu frequency selection
 	set_sched_freq();
 
 	return 0;
 
 err:
+<<<<<<< HEAD
 	policy->governor_data = NULL;
+=======
+>>>>>>> 4881baf... FROMLIST: sched: scheduler-driven cpu frequency selection
 	kfree(gd);
 	return -ENOMEM;
 }
@@ -333,8 +407,11 @@ static int cpufreq_sched_policy_exit(struct cpufreq_policy *policy)
 		put_task_struct(gd->task);
 	}
 
+<<<<<<< HEAD
 	sysfs_remove_group(get_governor_parent_kobj(policy), get_sysfs_attr());
 
+=======
+>>>>>>> 4881baf... FROMLIST: sched: scheduler-driven cpu frequency selection
 	policy->governor_data = NULL;
 
 	kfree(gd);
@@ -351,6 +428,7 @@ static int cpufreq_sched_start(struct cpufreq_policy *policy)
 	return 0;
 }
 
+<<<<<<< HEAD
 static void cpufreq_sched_limits(struct cpufreq_policy *policy)
 {
 	unsigned int clamp_freq;
@@ -366,6 +444,8 @@ static void cpufreq_sched_limits(struct cpufreq_policy *policy)
 		__cpufreq_driver_target(policy, clamp_freq, CPUFREQ_RELATION_L);
 }
 
+=======
+>>>>>>> 4881baf... FROMLIST: sched: scheduler-driven cpu frequency selection
 static int cpufreq_sched_stop(struct cpufreq_policy *policy)
 {
 	int cpu;
@@ -389,12 +469,16 @@ static int cpufreq_sched_setup(struct cpufreq_policy *policy,
 	case CPUFREQ_GOV_STOP:
 		return cpufreq_sched_stop(policy);
 	case CPUFREQ_GOV_LIMITS:
+<<<<<<< HEAD
 		cpufreq_sched_limits(policy);
+=======
+>>>>>>> 4881baf... FROMLIST: sched: scheduler-driven cpu frequency selection
 		break;
 	}
 	return 0;
 }
 
+<<<<<<< HEAD
 /* Tunables */
 static ssize_t show_up_throttle_nsec(struct gov_data *gd, char *buf)
 {
@@ -478,6 +562,8 @@ static struct attribute_group sched_attr_group_gov_pol = {
 	.name = "sched",
 };
 
+=======
+>>>>>>> 4881baf... FROMLIST: sched: scheduler-driven cpu frequency selection
 #ifndef CONFIG_CPU_FREQ_DEFAULT_GOV_SCHED
 static
 #endif
