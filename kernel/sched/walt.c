@@ -22,7 +22,10 @@
 #include <linux/syscore_ops.h>
 #include <linux/cpufreq.h>
 #include <trace/events/sched.h>
+<<<<<<< HEAD
 #include <clocksource/arm_arch_timer.h>
+=======
+>>>>>>> 5eeaf9d... sched: Introduce Window Assisted Load Tracking (WALT)
 #include "sched.h"
 #include "walt.h"
 
@@ -75,6 +78,7 @@ static cpumask_t mpc_mask = CPU_MASK_ALL;
 __read_mostly unsigned int walt_ravg_window = 20000000;
 
 /* Min window size (in ns) = 10ms */
+<<<<<<< HEAD
 #ifdef CONFIG_HZ_300
 /*
  * Tick interval becomes to 3333333 due to
@@ -84,6 +88,9 @@ __read_mostly unsigned int walt_ravg_window = 20000000;
 #else
 #define MIN_SCHED_RAVG_WINDOW 10000000
 #endif
+=======
+#define MIN_SCHED_RAVG_WINDOW 10000000
+>>>>>>> 5eeaf9d... sched: Introduce Window Assisted Load Tracking (WALT)
 
 /* Max window size (in ns) = 1s */
 #define MAX_SCHED_RAVG_WINDOW 1000000000
@@ -194,6 +201,7 @@ update_window_start(struct rq *rq, u64 wallclock)
 	int nr_windows;
 
 	delta = wallclock - rq->window_start;
+<<<<<<< HEAD
 	/* If the MPM global timer is cleared, set delta as 0 to avoid kernel BUG happening */
 	if (delta < 0) {
 		if (arch_timer_read_counter() == 0)
@@ -202,6 +210,9 @@ update_window_start(struct rq *rq, u64 wallclock)
 			BUG_ON(1);
 	}
 
+=======
+	BUG_ON(delta < 0);
+>>>>>>> 5eeaf9d... sched: Introduce Window Assisted Load Tracking (WALT)
 	if (delta < walt_ravg_window)
 		return;
 
@@ -237,6 +248,7 @@ static int cpu_is_waiting_on_io(struct rq *rq)
 	return atomic_read(&rq->nr_iowait);
 }
 
+<<<<<<< HEAD
 void walt_account_irqtime(int cpu, struct task_struct *curr,
 				 u64 delta, u64 wallclock)
 {
@@ -302,6 +314,8 @@ int walt_cpu_high_irqload(int cpu) {
 	return walt_irqload(cpu) >= sysctl_sched_walt_cpu_high_irqload;
 }
 
+=======
+>>>>>>> 5eeaf9d... sched: Introduce Window Assisted Load Tracking (WALT)
 static int account_busy_for_cpu_time(struct rq *rq, struct task_struct *p,
 				     u64 irqtime, int event)
 {
@@ -798,7 +812,11 @@ void walt_mark_task_starting(struct task_struct *p)
 		return;
 	}
 
+<<<<<<< HEAD
 	wallclock = walt_ktime_clock();
+=======
+	wallclock = ktime_get_ns();
+>>>>>>> 5eeaf9d... sched: Introduce Window Assisted Load Tracking (WALT)
 	p->ravg.mark_start = wallclock;
 }
 
@@ -811,7 +829,11 @@ void walt_set_window_start(struct rq *rq)
 		return;
 
 	if (cpu == sync_cpu) {
+<<<<<<< HEAD
 		rq->window_start = walt_ktime_clock();
+=======
+		rq->window_start = ktime_get_ns();
+>>>>>>> 5eeaf9d... sched: Introduce Window Assisted Load Tracking (WALT)
 	} else {
 		raw_spin_unlock(&rq->lock);
 		double_rq_lock(rq, sync_rq);
@@ -845,7 +867,11 @@ void walt_fixup_busy_time(struct task_struct *p, int new_cpu)
 	if (p->state == TASK_WAKING)
 		double_rq_lock(src_rq, dest_rq);
 
+<<<<<<< HEAD
 	wallclock = walt_ktime_clock();
+=======
+	wallclock = ktime_get_ns();
+>>>>>>> 5eeaf9d... sched: Introduce Window Assisted Load Tracking (WALT)
 
 	walt_update_task_ravg(task_rq(p)->curr, task_rq(p),
 			TASK_UPDATE, wallclock, 0);
@@ -864,6 +890,7 @@ void walt_fixup_busy_time(struct task_struct *p, int new_cpu)
 		dest_rq->prev_runnable_sum += p->ravg.prev_window;
 	}
 
+<<<<<<< HEAD
 	if ((s64)src_rq->prev_runnable_sum < 0) {
 		src_rq->prev_runnable_sum = 0;
 		WARN_ON(1);
@@ -872,6 +899,10 @@ void walt_fixup_busy_time(struct task_struct *p, int new_cpu)
 		src_rq->curr_runnable_sum = 0;
 		WARN_ON(1);
 	}
+=======
+	BUG_ON((s64)src_rq->prev_runnable_sum < 0);
+	BUG_ON((s64)src_rq->curr_runnable_sum < 0);
+>>>>>>> 5eeaf9d... sched: Introduce Window Assisted Load Tracking (WALT)
 
 	trace_walt_migration_update_sum(src_rq, p);
 	trace_walt_migration_update_sum(dest_rq, p);
@@ -1119,7 +1150,11 @@ static int cpufreq_notifier_trans(struct notifier_block *nb,
 
 		raw_spin_lock_irqsave(&rq->lock, flags);
 		walt_update_task_ravg(rq->curr, rq, TASK_UPDATE,
+<<<<<<< HEAD
 				      walt_ktime_clock(), 0);
+=======
+				      ktime_get_ns(), 0);
+>>>>>>> 5eeaf9d... sched: Introduce Window Assisted Load Tracking (WALT)
 		rq->cur_freq = new_freq;
 		raw_spin_unlock_irqrestore(&rq->lock, flags);
 	}
