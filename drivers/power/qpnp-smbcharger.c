@@ -1157,6 +1157,67 @@ static int get_prop_batt_voltage_now(struct smbchg_chip *chip)
 	return uv;
 }
 
+int get_charger_charging_current(void)
+{
+	int cur;
+	if (!pd_smbchg_chip)
+		return -1;
+	cur = (get_prop_batt_current_now(pd_smbchg_chip)) / 1000;
+	return cur;
+}
+EXPORT_SYMBOL(get_charger_charging_current);
+
+int get_battery_voltage(void)
+{
+	int vol;
+	if (!pd_smbchg_chip)
+		return -1;
+	vol = get_prop_batt_voltage_now(pd_smbchg_chip) / 1000;
+	return vol;
+}
+EXPORT_SYMBOL(get_battery_voltage);
+
+int get_charging_status(void)
+{
+	int charging_type;
+
+	if (!pd_smbchg_chip)
+		return -1;
+
+	if (get_prop_batt_status(pd_smbchg_chip)
+			== POWER_SUPPLY_STATUS_CHARGING) {
+		charging_type = get_prop_charge_type(pd_smbchg_chip);
+		printk("charging type=");
+		switch (charging_type)
+		{
+		case POWER_SUPPLY_CHARGE_TYPE_NONE:
+			printk("none charger");
+			break;
+		case POWER_SUPPLY_CHARGE_TYPE_TAPER:
+			printk("taper charger");
+			break;
+		case POWER_SUPPLY_CHARGE_TYPE_FAST:
+			printk("fast charger");
+			break;
+		case POWER_SUPPLY_CHARGE_TYPE_TRICKLE:
+			printk("trickle charger");
+			break;
+		default:
+			break;
+		}
+	} else if (get_prop_batt_status(pd_smbchg_chip)
+			== POWER_SUPPLY_STATUS_FULL) {
+		charging_type = 5;
+		printk("full charger,");
+	} else {
+		charging_type = 0;
+		printk("not charging,");
+	}
+	printk(" = ");
+	return charging_type;
+}
+EXPORT_SYMBOL(get_charging_status);
+
 #define DEFAULT_BATT_VOLTAGE_MAX_DESIGN	4200000
 static int get_prop_batt_voltage_max_design(struct smbchg_chip *chip)
 {
@@ -1437,6 +1498,59 @@ static const int aicl_rerun_period_schg_lite[] = {
 	90,
 	180,
 	360,
+};
+
+static const int Vol_raw[] = {
+	3000,
+	3200,
+	3400,
+	3600,
+	3800,
+	4000,
+	4200,
+	4400,
+	4600,
+	4800,
+	5000,
+	5200,
+	5400,
+	5600,
+	5800,
+	6000,
+	6200,
+	6400,
+	6600,
+	6800,
+	7000,
+	7200,
+	7400,
+	7600,
+	7800,
+	8000,
+	8200,
+	8400,
+	8600,
+	8800,
+	9000,
+};
+
+static const int mA_raw[] = {
+	0,
+	2000,
+	2200,
+	2400,
+	2600,
+	2800,
+	3000,
+	3200,
+	3400,
+	3600,
+	3800,
+	4000,
+	4200,
+	4400,
+	4600,
+	4800,
 };
 
 static void use_pmi8994_tables(struct smbchg_chip *chip)
@@ -2183,6 +2297,8 @@ static void smbchg_parallel_usb_enable(struct smbchg_chip *chip,
 			"Couldn't set Vflt on parallel psy rc: %d\n", rc);
 		return;
 	}
+	power_supply_set_voltage_limit(chip->usb_psy,
+			(chip->vfloat_mv + 50) * 1000);
 	/* Set USB ICL */
 	target_icl_ma = get_effective_result_locked(chip->usb_icl_votable);
 	new_parallel_cl_ma = total_current_ma
@@ -3149,8 +3265,11 @@ static int smbchg_float_voltage_set(struct smbchg_chip *chip, int vfloat_mv)
 
 	if (rc)
 		dev_err(chip->dev, "Couldn't set float voltage rc = %d\n", rc);
-	else
+	else {
 		chip->vfloat_mv = vfloat_mv;
+		power_supply_set_voltage_limit(chip->usb_psy,
+				chip->vfloat_mv * 1000);
+	}
 
 	return rc;
 }
