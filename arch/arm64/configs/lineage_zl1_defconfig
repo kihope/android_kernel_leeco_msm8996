@@ -547,9 +547,13 @@ CONFIG_CPU_FREQ_GOV_LIONFISH=y
 #
 # CONFIG_CPUFREQ_DT is not set
 <<<<<<< HEAD:arch/arm64/configs/lineage_zl1_defconfig
+<<<<<<< HEAD:arch/arm64/configs/lineage_zl1_defconfig
 CONFIG_CPU_BOOST=y
 =======
 CONFIG_CPU_FREQ_GOV_SCHED=y
+=======
+# CONFIG_CPU_FREQ_GOV_SCHED is not set
+>>>>>>> b46adbe... sched: Fix build without cpufreq_sched governror:arch/arm64/configs/lineageos_oneplus3_defconfig
 CONFIG_CPU_FREQ_GOV_SCHEDUTIL=y
 >>>>>>> 67424bd... Defconfig: Enable CONFIG_CPU_FREQ_GOV_SCHEDUTIL:arch/arm64/configs/lineageos_oneplus3_defconfig
 
