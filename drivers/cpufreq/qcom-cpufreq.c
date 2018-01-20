@@ -375,8 +375,6 @@ static struct cpufreq_frequency_table *cpufreq_parse_dt(struct device *dev,
 	int ret, nf, i;
 	u32 *data;
 	struct cpufreq_frequency_table *ftbl;
-<<<<<<< HEAD
-=======
 #ifdef CONFIG_MACH_MSM8996_15801
 	int underclk_max_perfcl, underclk_max_pwrcl;
 
@@ -394,7 +392,6 @@ static struct cpufreq_frequency_table *cpufreq_parse_dt(struct device *dev,
 		underclk_max_pwrcl = UNDERCLK_MAX_PWRCL_MSM8996;
 	}
 #endif
->>>>>>> 27b6542... qcom-cpufreq: Update underclock for MSM8996 and MSM8996pro
 
 	/* Parse list of usable CPU frequencies. */
 	if (!of_find_property(dev->of_node, tbl_name, &nf))
@@ -424,6 +421,7 @@ static struct cpufreq_frequency_table *cpufreq_parse_dt(struct device *dev,
 			break;
 		f /= 1000;
 
+<<<<<<< HEAD
 #ifdef CONFIG_MACH_MSM8996_15801
 		if (i > 0) {
 			/* Always underclock power cluster for stability */
@@ -439,6 +437,8 @@ static struct cpufreq_frequency_table *cpufreq_parse_dt(struct device *dev,
 		}
 #endif
 
+=======
+>>>>>>> 7be8a29... qcom-cpufreq: Clean up underclock code
 		/*
 		 * Check if this is the last feasible frequency in the table.
 		 *
@@ -459,6 +459,21 @@ static struct cpufreq_frequency_table *cpufreq_parse_dt(struct device *dev,
 
 		ftbl[i].driver_data = i;
 		ftbl[i].frequency = f;
+
+#ifdef CONFIG_MACH_MSM8996_15801
+		/* Always underclock power cluster for stability */
+		if (cpu < 2) {
+			if (f == underclk_max_pwrcl) {
+				i++;
+				break;
+			}
+		} else if (!no_cpu_underclock) {
+			if (f == underclk_max_perfcl) {
+				i++;
+				break;
+			}
+		}
+#endif
 	}
 
 	max_two_freqs[cpu][0] = ftbl[i - 2].frequency;
