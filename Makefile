@@ -295,10 +295,14 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 	  else if [ -x /bin/bash ]; then echo /bin/bash; \
 	  else echo sh; fi ; fi)
 
+GRAPHITE = -fgraphite -fgraphite-identity -floop-interchange -ftree-loop-linear -floop-strip-mine -floop-block
+#-floop-parallelize-all
+#-floop-nest-optimize
+
 HOSTCC       = gcc
 HOSTCXX      = g++
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -std=gnu89
-HOSTCXXFLAGS = -O2
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -pipe -g0 -DNDEBUG -O3 -fno-toplevel-reorder -fuse-linker-plugin -flto=4 -fomit-frame-pointer -fopenmp $(GRAPHITE) -std=gnu89
+HOSTCXXFLAGS = -pipe -g0 -DNDEBUG -O3 -fno-toplevel-reorder -fuse-linker-plugin -flto=4 $(GRAPHITE)
 
 ifeq ($(shell $(HOSTCC) -v 2>&1 | grep -c "clang version"), 1)
 HOSTCFLAGS  += -Wno-unused-value -Wno-unused-parameter \
@@ -350,11 +354,31 @@ MAKEFLAGS += --include-dir=$(srctree)
 # We need some generic definitions (do not try to remake the file).
 $(srctree)/scripts/Kbuild.include: ;
 include $(srctree)/scripts/Kbuild.include
+GCC_OPT		:=	-ffast-math \
+			-O3 \
+			-pipe \
+			-g0 \
+			-DNDEBUG \
+			-fomit-frame-pointer \
+			-fmodulo-sched \
+			-fmodulo-sched-allow-regmoves \
+			-fivopts \
+			-ftree-loop-vectorize \
+			-ftree-slp-vectorize \
+			-fvect-cost-model \
+			-fsingle-precision-constant \
+			-fpredictive-commoning \
+			-fsanitize=leak \
+			-Wno-maybe-uninitialized \
+			-Wno-misleading-indentation \
+			-Wno-array-bounds \
+			-Wno-shift-overflow \
+			$(GRAPHITE)
 
 # Make variables (CC, etc...)
 AS		= $(CROSS_COMPILE)as
-LD		= $(CROSS_COMPILE)ld
-REAL_CC		= $(CROSS_COMPILE)gcc
+LD		= $(CROSS_COMPILE)ld -O3 --strip-debug
+REAL_CC		= $(CROSS_COMPILE)gcc $(GCC_OPT)
 CPP		= $(CC) -E
 AR		= $(CROSS_COMPILE)ar
 NM		= $(CROSS_COMPILE)nm
@@ -377,7 +401,7 @@ CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
 CFLAGS_MODULE   =
 AFLAGS_MODULE   =
-LDFLAGS_MODULE  =
+LDFLAGS_MODULE  = $(GRAPHITE) --strip-debug
 CFLAGS_KERNEL	=
 AFLAGS_KERNEL	=
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage -fno-tree-loop-im
@@ -407,7 +431,8 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
-		   -std=gnu89
+                   -Wno-maybe-uninitialized -mcpu=cortex-a57.cortex-a53 -mtune=cortex-a57.cortex-a53
+		   -std=gnu89 \
 
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
