@@ -30,16 +30,8 @@ extern unsigned long cpufreq_scale_max_freq_capacity(int cpu);
 #endif
 #define arch_scale_cpu_capacity scale_cpu_capacity
 extern unsigned long scale_cpu_capacity(struct sched_domain *sd, int cpu);
-
-#else
-
-static inline void init_cpu_topology(void) { }
-static inline void store_cpu_topology(unsigned int cpuid) { }
-
 #endif
 #define arch_scale_cpu_capacity scale_cpu_capacity
 extern unsigned long scale_cpu_capacity(struct sched_domain *sd, int cpu);
 
 #include <asm-generic/topology.h>
-
-#endif /* _ASM_ARM_TOPOLOGY_H */

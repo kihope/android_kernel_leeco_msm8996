@@ -1069,7 +1069,6 @@ static int cpufreq_notifier_trans(struct notifier_block *nb,
 
 		raw_spin_lock_irqsave(&rq->lock, flags);
 		walt_update_task_ravg(rq->curr, rq, TASK_UPDATE,
-				      ktime_get_ns(), 0);
 				      walt_ktime_clock(), 0);
 		rq->cur_freq = new_freq;
 		raw_spin_unlock_irqrestore(&rq->lock, flags);
