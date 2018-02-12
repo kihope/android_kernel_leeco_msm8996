@@ -425,9 +425,9 @@ LINUXINCLUDE    := \
 
 KBUILD_CPPFLAGS := -D__KERNEL__
 
-KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
+KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -Wno-int-conversion \
 		   -fno-strict-aliasing -fno-common \
-		   -Werror-implicit-function-declaration -Wno-misleading-indentation -Wno-return-local-addr \
+		   -Wno-implicit-function-declaration -Wno-misleading-indentation -Wno-return-local-addr \
 		   -Wno-format-security -Wno-error=maybe-uninitialized -Wno-bool-compare -Wno-tautological-compare \
                    -Wno-maybe-uninitialized -Wno-unused-function -mcpu=cortex-a57.cortex-a53 -mtune=cortex-a57.cortex-a53 \
 		   -std=gnu89

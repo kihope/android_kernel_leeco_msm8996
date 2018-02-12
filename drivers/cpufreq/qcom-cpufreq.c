@@ -421,24 +421,6 @@ static struct cpufreq_frequency_table *cpufreq_parse_dt(struct device *dev,
 			break;
 		f /= 1000;
 
-<<<<<<< HEAD
-#ifdef CONFIG_MACH_MSM8996_15801
-		if (i > 0) {
-			/* Always underclock power cluster for stability */
-			if (cpu < 2) {
-				if (ftbl[i - 1].frequency ==
-						UNDERCLOCKED_MAX_KHZ_PWRCL)
-					break;
-			} else if (!no_cpu_underclock) {
-				if (ftbl[i - 1].frequency ==
-						UNDERCLOCKED_MAX_KHZ_PERFCL)
-					break;
-			}
-		}
-#endif
-
-=======
->>>>>>> 7be8a29... qcom-cpufreq: Clean up underclock code
 		/*
 		 * Check if this is the last feasible frequency in the table.
 		 *
