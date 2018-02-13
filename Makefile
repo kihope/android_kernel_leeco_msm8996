@@ -425,10 +425,10 @@ LINUXINCLUDE    := \
 
 KBUILD_CPPFLAGS := -D__KERNEL__
 
-KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -Wno-int-conversion \
-		   -fno-strict-aliasing -fno-common \
-		   -Wno-implicit-function-declaration -Wno-misleading-indentation -Wno-return-local-addr \
-		   -Wno-format-security -Wno-error=maybe-uninitialized -Wno-bool-compare -Wno-tautological-compare \
+KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Wno-int-conversion \
+		   -fno-strict-aliasing -fno-common -Wno-misleading-indentation -Wno-return-local-addr -Wno-bool-compare -Wno-tautological-compare \
+		   -Wno-error=implicit-function-declaration -Wno-return-local-addr -Wno-return-type \
+		   -Wno-format-security -Wno-error=maybe-uninitialized -Wno-implicit-function-declaration \
                    -Wno-maybe-uninitialized -Wno-unused-function -mcpu=cortex-a57.cortex-a53 -mtune=cortex-a57.cortex-a53 \
 		   -std=gnu89
 
@@ -686,24 +686,6 @@ endif
 # to let the build fail with bad compiler flags so that we can't produce a
 # kernel when there is a CONFIG and compiler mismatch.
 #
-ifdef CONFIG_CC_STACKPROTECTOR_REGULAR
-  stackp-flag := -fstack-protector
-  ifeq ($(call cc-option, $(stackp-flag)),)
-    $(warning Cannot use CONFIG_CC_STACKPROTECTOR_REGULAR: \
-             -fstack-protector not supported by compiler)
-  endif
-else
-ifdef CONFIG_CC_STACKPROTECTOR_STRONG
-  stackp-flag := -fstack-protector-strong
-  ifeq ($(call cc-option, $(stackp-flag)),)
-    $(warning Cannot use CONFIG_CC_STACKPROTECTOR_STRONG: \
-	      -fstack-protector-strong not supported by compiler)
-  endif
-else
-  # Force off for distro compilers that enable stack protector by default.
-  stackp-flag := $(call cc-option, -fno-stack-protector)
-endif
-endif
 KBUILD_CFLAGS += $(stackp-flag)
 
 ifdef CONFIG_KCOV
@@ -806,7 +788,7 @@ KBUILD_CFLAGS  += $(call cc-option,-fno-stack-check,)
 KBUILD_CFLAGS   += $(call cc-option,-fconserve-stack)
 
 # disallow errors like 'EXPORT_GPL(foo);' with missing header
-KBUILD_CFLAGS   += $(call cc-option,-Werror=implicit-int)
+KBUILD_CFLAGS   += $(call cc-option,-Wno-error=implicit-int)
 
 # require functions to have arguments in prototypes, not empty 'int foo()'
 KBUILD_CFLAGS   += $(call cc-option,-Werror=strict-prototypes)

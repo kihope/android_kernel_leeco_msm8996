@@ -40,6 +40,7 @@ import subprocess
 # force LANG to be set to en_US.UTF-8 to get consistent warnings.
 
 allowed_warnings = set([
+    "arm-memlat-mon.c:196",
     "fdt.c:932",
     "hid-magicmouse.c:579",
     "sysrq.c:956",
