@@ -299,8 +299,8 @@ GRAPHITE = -fgraphite -fgraphite-identity -floop-interchange -ftree-loop-distrib
 
 HOSTCC       = $(CCACHE) gcc
 HOSTCXX      = $(CCACHE) g++
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Ofast -fomit-frame-pointer -std=gnu89 $(GRAPHITE)
-HOSTCXXFLAGS = -Ofast $(GRAPHITE)
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Ofast -fomit-frame-pointer -std=gnu89 -g0 -DNDEBUG -fno-toplevel-reorder -fuse-linker-plugin -flto=4 -fopenmp $(GRAPHITE)
+HOSTCXXFLAGS = -Ofast -pipe -g0 -DNDEBUG -fno-toplevel-reorder -fuse-linker-plugin -flto=4 $(GRAPHITE)
 
 ifeq ($(shell $(HOSTCC) -v 2>&1 | grep -c "clang version"), 1)
 HOSTCFLAGS  += -Wno-unused-value -Wno-unused-parameter \
@@ -352,10 +352,28 @@ MAKEFLAGS += --include-dir=$(srctree)
 # We need some generic definitions (do not try to remake the file).
 $(srctree)/scripts/Kbuild.include: ;
 include $(srctree)/scripts/Kbuild.include
+GCC_OPT		:=	-ffast-math \
+			-O3 \
+			-pipe \
+			-g0 \
+			-DNDEBUG \
+			-fomit-frame-pointer \
+			-fmodulo-sched \
+			-fmodulo-sched-allow-regmoves \
+			-fivopts \
+			-ftree-loop-vectorize \
+			-ftree-slp-vectorize \
+			-fvect-cost-model \
+			-fsingle-precision-constant \
+			-fpredictive-commoning \
+			-fsanitize=leak \
+			-Wno-maybe-uninitialized \
+			-Wno-array-bounds \
+			$(GRAPHITE)
 
 # Make variables (CC, etc...)
 AS		= $(CROSS_COMPILE)as
-LD		= $(CROSS_COMPILE)ld
+LD		= $(CROSS_COMPILE)ld.gold -O3 --strip-debug
 REAL_CC		= $(CCACHE) $(CROSS_COMPILE)gcc
 CPP		= $(CC) -E
 AR		= $(CROSS_COMPILE)ar
@@ -405,14 +423,15 @@ LINUXINCLUDE    := \
 
 KBUILD_CPPFLAGS := -D__KERNEL__
 
-KBUILD_CFLAGS   := $(GRAPHITE) -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -Wno-pointer-to-int-cast \
-		   -fno-strict-aliasing -fno-common \
-		   -Werror-implicit-function-declaration \
-		   -Wno-format-security \
+KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -Wno-pointer-to-int-cast \
+		   -fno-strict-aliasing -fno-common $(GRAPHITE) \
+		   -Werror-implicit-function-declaration -Wno-misleading-indentation -Wno-return-local-addr \
+		   -Wno-format-security -Wno-error=maybe-uninitialized -Wno-bool-compare -Wno-tautological-compare \
+                   -Wno-maybe-uninitialized -Wno-unused-function -mtune=cortex-a57.cortex-a53 \
 		   -std=gnu89
 
 # Choose Cortex-A57 as the target which is the closest to Kryo.
-KBUILD_CFLAGS	+= -mcpu=cortex-a57+crc+crypto
+KBUILD_CFLAGS	+= -mcpu=cortex-a57.a53+crc+crypto
 
 # Kryo doesn't need 835769/843419 erratum fixes.
 # Some toolchains enable those fixes automatically, so opt-out.
