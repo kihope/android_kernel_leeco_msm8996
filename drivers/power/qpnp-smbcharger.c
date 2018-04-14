@@ -499,11 +499,13 @@ module_param_named(
 	int, S_IRUSR | S_IWUSR
 );
 
+
 /*
  * 1300-[smb/685mA, pmic/600mA, real usb_in/1.285A]
  * 1200-[smb/500mA, pmic/500mA, real usb_in/1A]
  */
-static int smbchg_default_hvdcp_icl_ma = 2800;
+static int smbchg_default_hvdcp_icl_ma = 2000;
+
 module_param_named(
 	default_hvdcp_icl_ma, smbchg_default_hvdcp_icl_ma,
 	int, S_IRUSR | S_IWUSR
@@ -515,7 +517,7 @@ module_param_named(
 	int, S_IRUSR | S_IWUSR
 );
 
-static int smbchg_default_dcp_icl_ma = 1500;
+static int smbchg_default_dcp_icl_ma = 2000;
 module_param_named(
 	default_dcp_icl_ma, smbchg_default_dcp_icl_ma,
 	int, S_IRUSR | S_IWUSR
